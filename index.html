@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Esperienza 360° Invisibile con Contenuti AR</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #info {
+        position: absolute;
+        top: 20px; left: 20px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        padding: 10px;
+        font-family: sans-serif;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info">Hai cliccato il contenuto AR!</div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/DeviceOrientationControls.js"></script>
+    <script>
+      let scene = new THREE.Scene();
+      let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      let renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Sfondo 360° invisibile (può essere attivato se serve)
+      const geometry = new THREE.SphereGeometry(500, 60, 40);
+      geometry.scale(-1, 1, 1);
+      const transparentMat = new THREE.MeshBasicMaterial({ visible: false });
+      const sphere = new THREE.Mesh(geometry, transparentMat);
+      scene.add(sphere);
+
+      // Contenuto "AR"
+      const arContent = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 10, 10),
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+      );
+      arContent.position.set(0, 0, -100);
+      scene.add(arContent);
+
+      // Controlli orientamento dispositivo
+      const controls = new THREE.DeviceOrientationControls(camera);
+
+      // Interazione clic
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      document.addEventListener('click', function(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(arContent);
+        if (intersects.length > 0) {
+          document.getElementById('info').style.display = 'block';
+        }
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
